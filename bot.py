@@ -11,7 +11,8 @@ from handlers import (
     handle_cart_actions, clear_user_cart, back_to_main_menu, back_to_categories,
     start_checkout, handle_address_input, handle_phone_input, handle_checkout_button,
     admin_command, handle_admin_password, show_admin_menu, handle_answer_support, handle_block_user, handle_unblock_user, handle_admin_menu,
-    show_edit_product_categories, show_edit_product_list, show_edit_product_form, start_edit_field
+    show_edit_product_categories, show_edit_product_list, show_edit_product_form, start_edit_field, finish_edit_field,
+    user_states, admin_states
 )
 
 # Инициализация базы данных
@@ -43,7 +44,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from database import register_user
     register_user(user.id, user.username, user.first_name, user.last_name)
 
-    from handlers import user_states
 
     # Проверяем состояния оформления заказа
     if user_id in user_states:
@@ -56,7 +56,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
     # Проверяем состояния администратора
-    from handlers import admin_states
     if user_id in admin_states:
         admin_state = admin_states[user_id].get('state')
         # Все состояния админ-панели обрабатываются одним обработчиком
@@ -80,7 +79,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         # Обработка состояния редактирования поля товара
         elif admin_state == 'editing_field':
-            from handlers import finish_edit_field
+            # finish_edit_field теперь импортируется в заголовке файла
             await finish_edit_field(update, context)
             return
     

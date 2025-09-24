@@ -1,78 +1,3 @@
-# Обновить товар
-def update_product(product_name, category_id, param, new_value):
-    conn = sqlite3.connect('music_bot.db')
-    cursor = conn.cursor()
-    if param == "цена":
-        cursor.execute('UPDATE products SET price = ? WHERE name = ? AND category_id = ?', (float(new_value), product_name, category_id))
-    elif param == "название":
-        cursor.execute('UPDATE products SET name = ? WHERE name = ? AND category_id = ?', (new_value, product_name, category_id))
-    elif param == "описание":
-        cursor.execute('UPDATE products SET description = ? WHERE name = ? AND category_id = ?', (new_value, product_name, category_id))
-    conn.commit()
-    conn.close()
-
-# Добавить товар
-def add_product(name, category_id, price, description):
-    conn = sqlite3.connect('music_bot.db')
-    cursor = conn.cursor()
-    cursor.execute('INSERT INTO products (name, category_id, price, description) VALUES (?, ?, ?, ?)', (name, category_id, float(price), description))
-    conn.commit()
-    conn.close()
-
-# Удалить товар
-def delete_product(product_name, category_id):
-    conn = sqlite3.connect('music_bot.db')
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM products WHERE name = ? AND category_id = ?', (product_name, category_id))
-    conn.commit()
-    conn.close()
-
-# Получить заказы по статусу
-def get_orders_by_status(status):
-    conn = sqlite3.connect('music_bot.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT order_number, user_id, address, phone, total_amount, created_at FROM orders WHERE status = ? ORDER BY created_at DESC', (status,))
-    orders = cursor.fetchall()
-    conn.close()
-    return orders
-
-# Изменить статус заказа
-def update_order_status(order_number, new_status):
-    conn = sqlite3.connect('music_bot.db')
-    cursor = conn.cursor()
-    cursor.execute('UPDATE orders SET status = ? WHERE order_number = ?', (new_status, order_number))
-    conn.commit()
-    conn.close()
-# Регистрировать пользователя при первом взаимодействии
-def register_user(user_id, username, first_name, last_name):
-    conn = sqlite3.connect('music_bot.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT OR IGNORE INTO users (user_id, username, first_name, last_name)
-        VALUES (?, ?, ?, ?)
-    ''', (user_id, username, first_name, last_name))
-    conn.commit()
-    conn.close()
-# Получить все новые вопросы поддержки
-def get_support_questions():
-    conn = sqlite3.connect('music_bot.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT id, user_id, question, created_at FROM support_questions WHERE status = 'new' ORDER BY created_at ASC
-    ''')
-    questions = cursor.fetchall()
-    conn.close()
-    return questions
-
-# Ответить на вопрос поддержки
-def answer_support_question(question_id, answer):
-    conn = sqlite3.connect('music_bot.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE support_questions SET status = 'answered', answer = ? WHERE id = ?
-    ''', (answer, question_id))
-    conn.commit()
-    conn.close()
 import sqlite3
 import random
 import string
@@ -243,6 +168,17 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Регистрировать пользователя при первом взаимодействии
+def register_user(user_id, username, first_name, last_name):
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT OR IGNORE INTO users (user_id, username, first_name, last_name)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, username, first_name, last_name))
+    conn.commit()
+    conn.close()
+
 # Проверка, является ли пользователь администратором
 def is_admin(user_id):
     conn = sqlite3.connect('music_bot.db')
@@ -326,8 +262,6 @@ def update_quiz_stats(user_id, is_correct):
     conn.commit()
     conn.close()
 
-# ... остальные функции из предыдущего кода ...
-
 # Функции для работы с поддержкой
 def add_support_question(user_id, question):
     conn = sqlite3.connect('music_bot.db')
@@ -339,6 +273,27 @@ def add_support_question(user_id, question):
     conn.commit()
     conn.close()
 
+# Получить все новые вопросы поддержки
+def get_support_questions():
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT id, user_id, question, created_at FROM support_questions WHERE status = 'new' ORDER BY created_at ASC
+    ''')
+    questions = cursor.fetchall()
+    conn.close()
+    return questions
+
+# Ответить на вопрос поддержки
+def answer_support_question(question_id, answer):
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE support_questions SET status = 'answered', answer = ? WHERE id = ?
+    ''', (answer, question_id))
+    conn.commit()
+    conn.close()
+
 # Функции для работы со справочником
 def get_band_country(band_name):
     conn = sqlite3.connect('music_bot.db')
@@ -347,8 +302,6 @@ def get_band_country(band_name):
     result = cursor.fetchone()
     conn.close()
     return result[0] if result else None
-
-
 
 def get_categories():
     conn = sqlite3.connect('music_bot.db')
@@ -449,8 +402,8 @@ def clear_cart(user_id):
     conn = sqlite3.connect('music_bot.db')
     cursor = conn.cursor()
     cursor.execute('DELETE FROM cart_items WHERE user_id = ?', (user_id,))
-
-
+    conn.commit()
+    conn.close()
 
 # Функция для генерации номера заказа
 def generate_order_number():
@@ -501,7 +454,68 @@ def get_user_orders(user_id):
     conn.close()
     return orders
 
-
-
+# Обновить товар (исправленная логика)
+def update_product(product_name, category_id, param, new_value):
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    
+    if param == "цена" or param == "price":
+        cursor.execute('UPDATE products SET price = ? WHERE name = ? AND category_id = ?', (float(new_value), product_name, category_id))
+    elif param == "название" or param == "name":
+        cursor.execute('UPDATE products SET name = ? WHERE name = ? AND category_id = ?', (new_value, product_name, category_id))
+    elif param == "описание" or param == "description":
+        cursor.execute('UPDATE products SET description = ? WHERE name = ? AND category_id = ?', (new_value, product_name, category_id))
+    
     conn.commit()
+    conn.close()
+
+# Добавить товар
+def add_product(name, category_id, price, description):
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO products (name, category_id, price, description) VALUES (?, ?, ?, ?)', (name, category_id, float(price), description))
+    conn.commit()
+    conn.close()
+
+# Удалить товар
+def delete_product(product_name, category_id):
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM products WHERE name = ? AND category_id = ?', (product_name, category_id))
+    conn.commit()
+    conn.close()
+
+# Получить заказы по статусу
+def get_orders_by_status(status):
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT order_number, user_id, address, phone, total_amount, created_at FROM orders WHERE status = ? ORDER BY created_at DESC', (status,))
+    orders = cursor.fetchall()
+    conn.close()
+    return orders
+
+# Изменить статус заказа
+def update_order_status(order_number, new_status):
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    cursor.execute('UPDATE orders SET status = ? WHERE order_number = ?', (new_status, order_number))
+    conn.commit()
+    conn.close()
+
+# Удалить товар из корзин всех пользователей (каскадное удаление)
+def remove_from_cart_by_product(product_name, category_id):
+    """Удаляет товар из корзин всех пользователей по имени и категории"""
+    conn = sqlite3.connect('music_bot.db')
+    cursor = conn.cursor()
+    
+    # Находим product_id по имени и категории
+    cursor.execute('SELECT id FROM products WHERE name = ? AND category_id = ?', (product_name, category_id))
+    product = cursor.fetchone()
+    
+    if product:
+        product_id = product[0]
+        # Удаляем товар из всех корзин
+        cursor.execute('DELETE FROM cart_items WHERE product_id = ?', (product_id,))
+        conn.commit()
+    
     conn.close()
