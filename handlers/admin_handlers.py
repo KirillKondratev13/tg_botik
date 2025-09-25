@@ -108,9 +108,12 @@ def validate_text_field(text: str, min_length: int = 1, max_length: int = 255) -
 async def handle_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     text = update.message.text.strip()
-    
+
     if user_id not in admin_states:
         return
+
+    # Логирование для отладки
+    admin_logger.info(f"Admin {user_id}: state={admin_states[user_id].get('state')}, text='{text}'")
 
     # === РЕДАКТИРОВАНИЕ ТОВАРА ===
     if admin_states[user_id].get("state") == "edit_product_category":

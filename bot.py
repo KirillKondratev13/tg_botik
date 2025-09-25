@@ -1,7 +1,7 @@
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from config import BOT_TOKEN
-from database import init_db
+from database import init_db, is_user_blocked, is_admin
 from handlers import (
     start_quiz, check_answer, show_stats,
     start_support, handle_support_question,
@@ -44,6 +44,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from database import register_user
     register_user(user.id, user.username, user.first_name, user.last_name)
 
+    # Проверяем блокировку пользователя (админы не блокируются)
+    if is_user_blocked(user_id) and not is_admin(user_id):
+        if text == "🛟 Поддержка" or (user_id in user_states and user_states[user_id].get('state') == 'support_waiting_question'):
+            pass  # Разрешить поддержку
+        else:
+            await update.message.reply_text("Вы заблокированы. Доступ только к поддержке.")
+            return
 
     # Проверяем состояния оформления заказа
     if user_id in user_states:
@@ -60,8 +67,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         admin_state = admin_states[user_id].get('state')
         # Все состояния админ-панели обрабатываются одним обработчиком
         if admin_state in [
-            'waiting_password', 'admin_menu', 'edit_product_category', 'edit_product_select', 'edit_product_param', 'edit_product_value',
-            'add_product_category', 'add_product_info', 'delete_product_category', 'delete_product_select', 'delete_product_confirm',
+            'waiting_password', 'admin_menu', 'edit_product_category', 'edit_product_select', 'edit_product_field', 'edit_product_value',
+            'add_product_category', 'add_product_name', 'add_product_price', 'add_product_description', 'delete_product_category', 'delete_product_select', 'delete_product_confirm',
             'orders_status', 'block_waiting_user_id', 'unblock_waiting_user_id', 'answer_waiting'
         ]:
             if admin_state == 'waiting_password':

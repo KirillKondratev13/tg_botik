@@ -273,12 +273,12 @@ def add_support_question(user_id, question):
     conn.commit()
     conn.close()
 
-# Получить все новые вопросы поддержки
+# Получить все доступные вопросы поддержки (не отвеченные)
 def get_support_questions():
     conn = sqlite3.connect('music_bot.db')
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT id, user_id, question, created_at FROM support_questions WHERE status = 'new' ORDER BY created_at ASC
+        SELECT id, user_id, question, created_at FROM support_questions WHERE status != 'answered' ORDER BY created_at ASC
     ''')
     questions = cursor.fetchall()
     conn.close()
