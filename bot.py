@@ -73,9 +73,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]:
             if admin_state == 'waiting_password':
                 await handle_admin_password(update, context)
-            elif admin_state in ['admin_menu', 'edit_product_category', 'edit_product_select', 'edit_product_param', 'edit_product_value',
-                                 'add_product_category', 'add_product_info', 'delete_product_category', 'delete_product_select', 'delete_product_confirm',
+            elif admin_state in ['admin_menu', 'edit_product_category', 'edit_product_select', 'edit_product_field', 'edit_product_value',
+                                 'add_product_category', 'add_product_name', 'add_product_price', 'add_product_description', 'delete_product_category', 'delete_product_select', 'delete_product_confirm',
                                  'orders_status']:
+                print(f"DEBUG bot.py: Handling admin state '{admin_state}' for user {user_id} with text '{text}'")
                 await handle_admin_menu(update, context)
             elif admin_state == 'block_waiting_user_id':
                 await handle_block_user(update, context)

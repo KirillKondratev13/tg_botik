@@ -458,14 +458,17 @@ def get_user_orders(user_id):
 def update_product(product_name, category_id, param, new_value):
     conn = sqlite3.connect('music_bot.db')
     cursor = conn.cursor()
-    
+
+    print(f"DEBUG: Updating product - name: {product_name}, cat_id: {category_id}, param: {param}, new_value: {new_value}")
+
     if param == "цена" or param == "price":
         cursor.execute('UPDATE products SET price = ? WHERE name = ? AND category_id = ?', (float(new_value), product_name, category_id))
     elif param == "название" or param == "name":
         cursor.execute('UPDATE products SET name = ? WHERE name = ? AND category_id = ?', (new_value, product_name, category_id))
     elif param == "описание" or param == "description":
         cursor.execute('UPDATE products SET description = ? WHERE name = ? AND category_id = ?', (new_value, product_name, category_id))
-    
+
+    print(f"DEBUG: Rows affected: {cursor.rowcount}")
     conn.commit()
     conn.close()
 

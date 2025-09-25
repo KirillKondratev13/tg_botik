@@ -167,6 +167,7 @@ async def handle_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if admin_states[user_id].get("state") == "edit_product_field":
+        admin_logger.info(f"Admin {user_id}: Processing edit_product_field - text: '{text}'")
         if text == "🔙 Назад к товарам":
             category_name = admin_states[user_id]["edit_category"]
             admin_states[user_id]["state"] = "edit_product_select"
@@ -175,9 +176,11 @@ async def handle_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
         field_mapping = {
             "💰 Цена": "price",
-            "📝 Название": "name", 
+            "📝 Название": "name",
             "📋 Описание": "description"
         }
+        
+        admin_logger.info(f"Admin {user_id}: Field mapping check - text in mapping: {text in field_mapping}")
         
         if text not in field_mapping:
             await update.message.reply_text("❌ Выберите параметр из предложенных вариантов.")
@@ -185,6 +188,8 @@ async def handle_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
         admin_states[user_id]["edit_field"] = field_mapping[text]
         admin_states[user_id]["state"] = "edit_product_value"
+        
+        admin_logger.info(f"Admin {user_id}: Set edit_field to '{field_mapping[text]}' and state to 'edit_product_value'")
         
         field_prompts = {
             "price": "💰 Введите новую цену товара (только число):",
@@ -199,6 +204,7 @@ async def handle_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if admin_states[user_id].get("state") == "edit_product_value":
+        admin_logger.info(f"Admin {user_id}: Processing edit_product_value - text: '{text}'")
         if text == "🔙 Отмена":
             admin_states[user_id]["state"] = "edit_product_field"
             product_name = admin_states[user_id]["edit_product"]
@@ -211,6 +217,8 @@ async def handle_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         product_name = admin_states[user_id]["edit_product"]
         field = admin_states[user_id]["edit_field"]
         new_value = text.strip()
+
+        admin_logger.info(f"Admin {user_id}: Edit values - cat: {category_name}, prod: {product_name}, field: {field}, value: {new_value}")
 
         # Валидация
         if field == "price":
@@ -228,14 +236,16 @@ async def handle_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             categories = get_categories()
             category_id = next((cat[0] for cat in categories if cat[1] == category_name), None)
-            
+
+            admin_logger.info(f"Admin {user_id}: Category ID: {category_id}")
+
             if category_id:
                 update_product(product_name, category_id, field, new_value)
                 await update.message.reply_text(MESSAGES['success_product_updated'])
                 log_admin_action(user_id, "PRODUCT_UPDATED", f"Product: {product_name}, Field: {field}, Value: {new_value}")
             else:
                 await update.message.reply_text(MESSAGES['error_category_not_found'])
-                
+
         except Exception as e:
             await update.message.reply_text(f"❌ Ошибка при обновлении товара: {str(e)}")
             log_admin_action(user_id, "PRODUCT_UPDATE_ERROR", f"Product: {product_name}, Error: {str(e)}")
