@@ -21,7 +21,22 @@ Edit `config.py` to set your BOT_TOKEN.
 ## Running
 `python3 bot.py`
 
+## Adding an Administrator
+To add an administrator to the bot's database, use the following SQL command after the bot has been run at least once (to create the database):
+
+```
+sqlite3 music_bot.db "INSERT INTO administrators (user_id, password) VALUES (558525097, 'admin');"
+```
+
+Replace `558525097` with the actual Telegram user ID and `'admin'` with a secure password.
+
 ## Troubleshooting
 - **Version conflicts:** Ensure Python 3.6+ is installed.
 - **Permissions:** Run commands with appropriate privileges.
 - **Token issues:** Verify BOT_TOKEN is correctly set in config.py.
+
+## Security Best Practices
+- Never commit sensitive data like bot tokens to the repository. Use environment variables instead.
+- Ensure `config.py` is added to `.gitignore`.
+- Consider using `python-dotenv` to load environment variables from a `.env` file (not committed).
+- Regularly rotate tokens and monitor bot usage for unauthorized access.
